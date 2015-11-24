@@ -8,11 +8,12 @@ var Enemy = function() {
     this.sprite = 'images/enemy-bug.png';
 
     // The initial location of the enemy.
-    this.x = '300';
-    this.y = '200';
+    this.x = -170;
+    // The enemy should randomly spawn on one of the three stone rows.
+    this.y = (Math.floor(Math.random()*3) + 1);
 
     // The speed the enemy moves each tick.
-    this.speed = '30';
+    this.speed = (Math.floor(Math.random()*400) + 200);
 };
 
 // Update the enemy's position, required method for game
@@ -21,13 +22,21 @@ Enemy.prototype.update = function(dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
-    this.x = (this.x + this.speed) * dt;
-
-};
+    this.x = (this.x + (this.speed * dt));
+    if(this.x > 600) {
+        allEnemies.splice(allEnemies.indexOf(this),1);
+        allEnemies.push(new Enemy());
+    }
+    if(this.y == player.y) {
+        if(((this.x + 45) >= (player.x * 101)) && ((this.x - 45) <= (player.x *101))) {
+            player.reset();
+        }
+    }
+}
 
 // Draw the enemy on the screen, required method for game
 Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y * 83 - 25);
 };
 
 // Now write your own player class
@@ -45,14 +54,22 @@ Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x * 101, this.y * 83 - 42);
 };
 
+Player.prototype.update = function() {
+    player.render();
+}
+
+Player.prototype.reset = function() {
+    player.x = 2;
+    player.y = 4;
+}
+
 // Move the player when one of the movement keys is released.
 Player.prototype.handleInput = function(whichKey) {
     switch(whichKey) {
         case "up":
             if(player.y <= 1) {
                 // The player reached the water!
-                player.x = 2;
-                player.y = 4;
+                player.reset();
             } else {
                 player.y = player.y - 1;
             }
@@ -85,6 +102,9 @@ Player.prototype.handleInput = function(whichKey) {
 // Place the player object in a variable called player
 var allEnemies = [];
 var player = new Player();
+allEnemies.push(new Enemy());
+allEnemies.push(new Enemy());
+allEnemies.push(new Enemy());
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
